@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BP-Panels | Settings</title>
+    <!-- Command: Load the shared responsive styles for this page. -->
+    <link rel="stylesheet" href="CSS/main.css">
+    <link rel="stylesheet" href="CSS/header.css">
+    <link rel="stylesheet" href="CSS/side-nav-bar.css">
+    <link rel="stylesheet" href="CSS/feed.css">
+    <link rel="stylesheet" href="CSS/pages.css">
+    <link rel="stylesheet" href="CSS/notification.css">
+    <script src="JS/main.js" defer></script>
+</head>
+<body>
+    <header class="header"><a href="index.html" id="Logo">BP-Panels</a><div class="head-nav"><form action="search.html" class="search-form"><input type="text" name="q" placeholder="Search..."></form><a href="publish.html" class="publish">Publish</a><a href="profile.html" class="profile">Profile</a></div></header>
+    <nav class="side-nav"><ul class="side-nav-list">
+        <li><a class="side-nav-button" href="saved.html" aria-label="Saved">Saved</a></li>
+        <li><a class="side-nav-button" href="my-books.html" aria-label="My Books">My Books</a></li>
+        <li><a class="side-nav-button" href="shelf.html" aria-label="Shelf">Shelf</a></li>
+        <li><a class="side-nav-button" href="creator-tools.html" aria-label="Creator Tools">Creator Tools</a></li>
+        <li class="mobile-nav-item"><a class="side-nav-button" href="publish.html" aria-label="Publish">Publish</a></li>
+        <li class="mobile-nav-item"><a class="side-nav-button" href="notifications.html" aria-label="Notification">Notification</a></li>
+        <li><a class="side-nav-button active" href="settings.html" aria-label="Settings">Settings</a></li>
+    </ul></nav>
+    <main class="main"><div class="main-content">
+        <section class="page-hero"><p class="page-kicker">Account</p><h1 class="page-title">Settings</h1><p class="page-copy">Frontend controls for profile, privacy, reading, and creator preferences.</p></section>
+        <section class="settings-group form-stack">
+            <!-- Command: Show future account settings without connecting to a backend yet. -->
+            <div class="field"><label for="display-name">Display name</label><input id="display-name" type="text" value="BP Creator"></div>
+            <div class="field"><label for="email">Email</label><input id="email" type="email" value="creator@example.com"></div>
+            <div class="field"><label for="privacy">Profile visibility</label><select id="privacy"><option>Public</option><option>Followers only</option><option>Private</option></select></div>
+            <div class="field"><label for="theme">Theme</label><select id="theme"><option>System</option><option>Light</option><option>Dark</option></select></div>
+            <div class="action-row"><button class="primary-action" type="button">Save settings</button></div>
+        </section>
+    </div></main>
+    <aside class="notifications"><div class="notifications-content"><h2>Notifications</h2><a class="aside-link" href="notifications.html">View all</a></div></aside>
+</body>
+</html>
