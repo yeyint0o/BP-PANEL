@@ -1,0 +1,542 @@
+/* Command: Create reusable clean social-media page sections for every separate page. */
+.page-hero,
+.page-panel,
+.profile-card,
+.settings-group,
+.publish-form,
+.tool-grid,
+.notification-list,
+.saved-grid{
+    background: var(--panel-background);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: var(--soft-shadow);
+}
+
+/* Command: Give each page a clear top section with title and short helper text. */
+.page-hero{
+    display: grid;
+    gap: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.page-kicker{
+    color: var(--accent-color);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.page-title{
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+}
+
+.page-copy{
+    color: var(--muted-text);
+    line-height: 1.6;
+}
+
+/* Command: Reuse this grid for responsive cards across pages. */
+.card-grid,
+.tool-grid,
+.saved-grid{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.mini-card{
+    padding: 18px;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: var(--panel-background);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.mini-card:hover{
+    border-color: var(--accent-color);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.24);
+}
+
+.mini-card h2,
+.mini-card h3{
+    margin-bottom: 8px;
+}
+
+.mini-card p{
+    color: var(--muted-text);
+    line-height: 1.5;
+}
+
+.page-panel,
+.profile-card,
+.publish-form,
+.settings-group,
+.notification-list{
+    padding: 22px;
+}
+
+/* Command: Style buttons and links in a simple Facebook-like way. */
+.primary-action,
+.secondary-action{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 20px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.primary-action{
+    border: none;
+    background-color: var(--button-background);
+    color: var(--text-color);
+}
+
+.secondary-action{
+    border: 1px solid var(--border-color);
+    background: var(--button-background);
+    color: var(--text-color);
+}
+
+.primary-action:hover{
+    background-color: var(--accent-color);
+    color: #061014;
+    transform: translateY(-1px);
+}
+
+.secondary-action:hover{
+    border-color: var(--accent-color);
+    background: var(--soft-accent);
+    transform: translateY(-1px);
+}
+
+.primary-action:active,
+.secondary-action:active{
+    transform: translateY(0);
+}
+
+.action-row{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+/* Command: Build form layouts for publish, search, and settings pages. */
+.form-stack{
+    display: grid;
+    gap: 14px;
+}
+
+.field{
+    display: grid;
+    gap: 8px;
+}
+
+.field label{
+    font-weight: 700;
+}
+
+.field input,
+.field textarea,
+.field select{
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: var(--search-background);
+    color: var(--text-color);
+    font: inherit;
+    outline: none;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus{
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(1, 172, 237, 0.16);
+}
+
+.field textarea{
+    min-height: 140px;
+    resize: vertical;
+}
+
+/* Command: Create profile and notification layouts that resize cleanly. */
+.profile-card{
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 18px;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.avatar{
+    display: grid;
+    place-items: center;
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: var(--button-background);
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+.stats-row{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 12px;
+}
+
+.stat-pill{
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: var(--button-background);
+    color: var(--text-color);
+    font-weight: 700;
+}
+
+.notification-list{
+    display: grid;
+    gap: 12px;
+}
+
+.notification-item{
+    display: grid;
+    gap: 4px;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--button-background);
+}
+
+.aside-link{
+    margin-top: 12px;
+    color: var(--accent-color);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+/* Command: Show manga panel thumbnails on the publish page before saving the post. */
+.field-help{
+    color: var(--muted-text);
+    line-height: 1.5;
+}
+
+.panel-preview-grid{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.panel-preview{
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--button-background);
+    cursor: grab;
+    transition: border-color 0.18s ease, transform 0.18s ease, opacity 0.18s ease;
+}
+
+.panel-preview.is-dragging{
+    opacity: 0.55;
+    transform: scale(0.98);
+    border-color: var(--accent-color);
+}
+
+.panel-preview img{
+    display: block;
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    cursor: zoom-in;
+}
+
+.panel-delete-button{
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 1;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: rgba(22, 26, 30, 0.86);
+    color: var(--text-color);
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.panel-delete-button:hover{
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.panel-preview figcaption{
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    color: var(--muted-text);
+    font-size: 0.9rem;
+}
+
+.panel-preview figcaption strong{
+    overflow: hidden;
+    color: var(--text-color);
+    font-size: 0.85rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.panel-order-controls{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.panel-order-controls button{
+    min-height: 34px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--search-background);
+    color: var(--text-color);
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.panel-order-controls button:hover:not(:disabled){
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.panel-order-controls button:disabled{
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.panel-preview-modal{
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.72);
+}
+
+.panel-preview-dialog{
+    width: min(100%, 900px);
+    max-height: 92vh;
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: var(--panel-background);
+    box-shadow: var(--soft-shadow);
+}
+
+.panel-preview-dialog img{
+    max-width: 100%;
+    max-height: 72vh;
+    margin: 0 auto;
+    border-radius: 12px;
+    object-fit: contain;
+}
+
+.panel-preview-dialog p{
+    color: var(--text-color);
+    text-align: center;
+    word-break: break-word;
+}
+
+.panel-preview-close{
+    justify-self: end;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    padding: 8px 14px;
+    background: var(--button-background);
+    color: var(--text-color);
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.panel-preview-close:hover{
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.form-message{
+    min-height: 24px;
+    color: var(--accent-color);
+    font-weight: 700;
+}
+
+/* Command: Style the full-page manga reading mode. */
+.reader-shell{
+    display: grid;
+    gap: 20px;
+}
+
+.reader-header{
+    padding: 22px;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: var(--panel-background);
+    box-shadow: var(--soft-shadow);
+}
+
+.reader-panels{
+    display: grid;
+    gap: 16px;
+}
+
+.reader-panel,
+.reader-empty-panel{
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: var(--panel-background);
+    box-shadow: var(--soft-shadow);
+}
+
+.reader-panel{
+    display: block;
+}
+
+.reader-panel-frame{
+    display: grid;
+    gap: 8px;
+}
+
+.reader-panel-frame figcaption{
+    color: var(--muted-text);
+    font-size: 0.9rem;
+    text-align: center;
+    word-break: break-word;
+}
+
+.reader-empty-panel{
+    padding: 40px 22px;
+    color: var(--muted-text);
+    text-align: center;
+}
+
+/* Command: Style the manga details page that appears before reading mode. */
+.details-shell{
+    display: grid;
+    gap: 20px;
+}
+
+.details-card{
+    display: grid;
+    grid-template-columns: minmax(220px, 320px) 1fr;
+    gap: 22px;
+    padding: 22px;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: var(--panel-background);
+    box-shadow: var(--soft-shadow);
+}
+
+.details-cover,
+.details-card .manga-cover-placeholder{
+    width: 100%;
+    min-height: 360px;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    object-fit: cover;
+    background: var(--button-background);
+}
+
+.details-body{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.details-stats{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.details-stats span{
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--button-background);
+    color: var(--muted-text);
+    font-size: 0.9rem;
+}
+
+/* Command: Style the separate comments page container. */
+.comments-page-card{
+    display: grid;
+    gap: 16px;
+    padding: 22px;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: var(--panel-background);
+    box-shadow: var(--soft-shadow);
+}
+
+@media (max-width: 760px){
+    /* Command: Collapse page content into one column on small screens. */
+    .page-hero,
+    .page-panel,
+    .profile-card,
+    .publish-form,
+    .settings-group,
+    .notification-list{
+        border-radius: 14px;
+        padding: 18px;
+    }
+
+    .card-grid,
+    .tool-grid,
+    .saved-grid{
+        grid-template-columns: 1fr;
+    }
+
+    .profile-card{
+        grid-template-columns: 1fr;
+        justify-items: start;
+    }
+
+    .avatar{
+        width: 72px;
+        height: 72px;
+        font-size: 1.4rem;
+    }
+
+    .panel-preview-grid{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .panel-preview img{
+        height: 130px;
+    }
+
+    .details-card{
+        grid-template-columns: 1fr;
+    }
+
+    .details-cover,
+    .details-card .manga-cover-placeholder{
+        min-height: 260px;
+    }
+}

@@ -1,0 +1,14 @@
+BP-Panels dark dashboard color palette
+
+--page-background: #161a1e;
+--panel-background: #232b32;
+--text-color: #f3f7fa;
+--header-background: #232b32;
+
+--accent-color: #01aced;
+--accent-dark: #0094cc;
+--soft-accent: #2f3942;
+
+--button-background: #3e3e46;
+--search-background: #3e3e46;
+--border-color: #35414a;

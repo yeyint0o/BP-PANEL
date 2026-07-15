@@ -1,0 +1,76 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root{
+    /* Command: Keep important layout sizes in one place. */
+    --header-height: 80px;  
+    --left-sidebar-width: 220px;
+    --right-sidebar-width: 240px;
+    --mobile-bottom-nav-height: 78px;
+    /* Command: Use a dark dashboard theme with cyan as the main action color. */
+    --page-background: #161a1e;
+    --panel-background: #232b32;
+    --text-color: #f3f7fa;
+    --header-background: #232b32;
+    --accent-color: #01aced;
+    --accent-dark: #0094cc;
+    --soft-accent: #2f3942;
+    --button-background: #3e3e46;
+    --search-background: #3e3e46;
+    --border-color: #35414a;
+    --muted-text: #aeb8c2;
+    --soft-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
+}
+
+body{
+    color: var(--text-color);
+    background-color: var(--page-background);
+    min-height: 100vh;
+    padding-top: var(--header-height);
+    padding-left: var(--left-sidebar-width);
+    padding-right: var(--right-sidebar-width);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input{
+    font: inherit;
+}
+
+button,
+input,
+textarea,
+select{
+    color: inherit;
+}
+
+button,
+a{
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Command: On tablets, keep both side panels visible but make them narrower. */
+@media (max-width: 1100px){
+    :root{
+        --left-sidebar-width: 180px;
+        --right-sidebar-width: 190px;
+    }
+}
+
+/* Command: On phones, remove side padding and reserve space for the bottom navigation. */
+@media (max-width: 760px){
+    :root{
+        --left-sidebar-width: 0px;
+        --right-sidebar-width: 0px;
+        --header-height: 72px;
+    }
+
+    body{
+        padding-left: 0;
+        padding-right: 0;
+        padding-bottom: var(--mobile-bottom-nav-height);
+    }
+}

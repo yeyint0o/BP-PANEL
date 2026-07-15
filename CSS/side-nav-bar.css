@@ -1,0 +1,153 @@
+.side-nav{
+    /* Command: On large screens, keep the main navigation fixed on the left side. */
+    border: 1px solid var(--border-color);
+    width: var(--left-sidebar-width);
+    background: var(--panel-background);
+    position: fixed;
+    top: var(--header-height);
+    bottom: 0;
+    left: 0;
+    overflow-y: auto;
+    transition: top 0.3s ease-in-out;
+}
+
+.header-is-hidden .side-nav{
+    top: 0;
+}
+
+.side-nav-list{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+    list-style: none;
+}
+
+.side-nav-button{
+    /* Command: Make navigation items work as links while still looking like app buttons. */
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.side-nav-button:hover,
+.side-nav-button.active{
+    background: var(--soft-accent);
+    color: var(--accent-color);
+}
+
+.mobile-nav-item{
+    display: none;
+}
+
+@media (max-width: 760px){
+    .side-nav{
+        /* Command: On small screens, change the sidebar into a fixed Instagram-style bottom icon bar. */
+        top: auto;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: var(--mobile-bottom-nav-height);
+        z-index: 1100;
+        border-top: 1px solid var(--border-color);
+        border-right: 0;
+        border-bottom: 0;
+        border-left: 0;
+        background: rgba(35, 43, 50, 0.96);
+        backdrop-filter: blur(10px);
+        overflow: hidden;
+    }
+
+    .header-is-hidden .side-nav{
+        top: auto;
+    }
+
+    .side-nav-list{
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0;
+        min-width: 0;
+        height: 100%;
+        padding: 8px;
+    }
+
+    .side-nav-list li{
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .side-nav-button{
+        /* Command: Hide text labels on phones and show compact icons only. */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-width: 0;
+        height: 54px;
+        padding: 8px 4px;
+        border-radius: 14px;
+        text-align: center;
+        font-size: 0;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .side-nav-button::before{
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border: 1px solid currentColor;
+        border-radius: 12px;
+        font-size: 1rem;
+        line-height: 1;
+    }
+
+    .side-nav-button:hover,
+    .side-nav-button.active{
+        background: var(--soft-accent);
+    }
+
+    .side-nav-list li:nth-child(1) .side-nav-button::before{
+        content: "\1F516";
+    }
+
+    .side-nav-list li:nth-child(2) .side-nav-button::before{
+        content: "\1F4DA";
+    }
+
+    .side-nav-list li:nth-child(3) .side-nav-button::before{
+        content: "\25A6";
+    }
+
+    .side-nav-list li:nth-child(4) .side-nav-button::before{
+        content: "\2692";
+    }
+
+    .side-nav-list li:nth-child(5) .side-nav-button::before{
+        content: "\002B";
+    }
+
+    .side-nav-list li:nth-child(6) .side-nav-button::before{
+        content: "\1F514";
+    }
+
+    .side-nav-list li:nth-child(7) .side-nav-button::before{
+        content: "\2699";
+    }
+
+    .mobile-nav-item{
+        display: block;
+    }
+}
