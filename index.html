@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BP-Panels | Home</title>
+
+    <!-- Command: Load shared layout and page styles. -->
+    <link rel="stylesheet" href="CSS/main.css">
+    <link rel="stylesheet" href="CSS/header.css">
+    <link rel="stylesheet" href="CSS/side-nav-bar.css">
+    <link rel="stylesheet" href="CSS/feed.css">
+    <link rel="stylesheet" href="CSS/pages.css">
+    <link rel="stylesheet" href="CSS/notification.css">
+    <script src="JS/main.js" defer></script>
+</head>
+
+<body>
+    <header class="header">
+        <!-- Command: Send users back to the home feed when they click the logo. -->
+        <a href="index.html" id="Logo">BP-Panels</a>
+
+        <div class="head-nav">
+            <!-- Command: Open the search page from the header search form. -->
+            <form action="search.html" class="search-form">
+                <input type="text" name="q" placeholder="Search...">
+
+            </form>
+
+            <a href="publish.html" class="publish">Publish</a>
+            <a href="profile.html" class="profile">Profile</a>
+        </div>
+    </header>
+
+    <!-- Command: Desktop shows this as a left sidebar; mobile turns it into a bottom icon bar. -->
+    <nav class="side-nav">
+        <ul class="side-nav-list">
+            <li>
+                <a class="side-nav-button" href="saved.html" aria-label="Saved">Saved</a>
+            </li>
+
+            <li>
+                <a class="side-nav-button" href="my-books.html" aria-label="My Books">My Books</a>
+            </li>
+            <li><a class="side-nav-button" href="shelf.html" aria-label="Shelf">Shelf</a></li>
+            <li><a class="side-nav-button" href="creator-tools.html" aria-label="Creator Tools">Creator Tools</a></li>
+            <li class="mobile-nav-item"><a class="side-nav-button" href="publish.html" aria-label="Publish">Publish</a>
+            </li>
+            <li class="mobile-nav-item"><a class="side-nav-button" href="notifications.html"
+                    aria-label="Notification">Notification</a></li>
+            <li><a class="side-nav-button" href="settings.html" aria-label="Settings">Settings</a></li>
+        </ul>
+    </nav>
+
+    <main class="main">
+        <div class="main-content">
+            <section class="page-hero">
+                <p class="page-kicker">Comic social feed</p>
+                <h1 class="page-title">Welcome to BP-Panels</h1>
+                <p class="page-copy">Discover comic stories, follow creators, save chapters, and build your own shelf.
+                </p>
+            </section>
+
+            <!-- Command: JavaScript renders manga cards here. Click a card to open reader.html. -->
+            <div class="demo-story-list" id="manga-feed" aria-label="Manga story feed">
+                <noscript>Please enable JavaScript to see interactive manga cards.</noscript>
+            </div>
+        </div>
+    </main>
+
+    <aside class="notifications">
+        <div class="notifications-content">
+            <h2>Notifications</h2>
+            <a class="aside-link" href="notifications.html">View all</a>
+        </div>
+    </aside>
+</body>
+
+</html>
