@@ -1,20 +1,18 @@
-// Command: Use one localStorage key for all frontend-only manga posts.
-const MANGA_STORAGE_KEY = 'bpPanelsMangaPosts';
+// Command: These names are used to save data in the browser.
+var MANGA_STORAGE_KEY = 'bpPanelsMangaPosts';
+var MANGA_ACTIONS_KEY = 'bpPanelsMangaActions';
 
-// Command: Use one localStorage key for like/comment/share/save button states.
-const MANGA_ACTIONS_KEY = 'bpPanelsMangaActions';
+// Command: This array keeps the selected image panels before publishing.
+var selectedPublishPanels = [];
 
-// Command: Keep the selected publish panels in the order chosen by the creator.
-let selectedPublishPanels = [];
-
-// Command: Create demo manga so the feed still has cards before the user publishes anything.
-const demoMangaPosts = [
+// Command: Demo cards show on the feed before the user publishes anything.
+var demoMangaPosts = [
     {
         id: 'demo-first-panel',
         mangaName: 'The First Panel',
         creatorName: 'BP Studio',
         genre: 'Action',
-        description: 'A sample manga card for testing the interactive feed, manga details page, and reader page.',
+        description: 'A sample manga card for testing the interactive feed, details page, and reader page.',
         panels: []
     },
     {
@@ -35,43 +33,46 @@ const demoMangaPosts = [
     }
 ];
 
-// Command: Find the fixed header in the page.
-const header = document.querySelector('.header');
+// Command: Find a parent element by class name.
+function findParentWithClass(element, className) {
+    while (element && element !== document) {
+        if (element.classList && element.classList.contains(className)) {
+            return element;
+        }
 
-// Command: Use the html element to share the header state with CSS.
-const root = document.documentElement;
+        element = element.parentNode;
+    }
 
-// Command: Remember the last scroll position so we can detect scroll direction.
-let lastScrollY = window.scrollY;
-
-// Command: Prevent the scroll event from running too many layout updates at once.
-let ticking = false;
-
-// Command: Hide the header when scrolling down, and show it again when scrolling up.
-function updateHeader() {
-    const currentScrollY = window.scrollY;
-    const scrollingUp = currentScrollY < lastScrollY;
-    const nearTop = currentScrollY <= 10;
-    const shouldHideHeader = !scrollingUp && !nearTop;
-
-    header.classList.toggle('header--hidden', shouldHideHeader);
-    root.classList.toggle('header-is-hidden', shouldHideHeader);
-
-    lastScrollY = Math.max(currentScrollY, 0);
-    ticking = false;
+    return null;
 }
 
-// Command: Listen for page scrolling and update the header smoothly.
-window.addEventListener('scroll', () => {
-    if (!ticking) {
-        window.requestAnimationFrame(updateHeader);
-        ticking = true;
-    }
-}, { passive: true });
+// Command: Find a parent element that has a specific attribute.
+function findParentWithAttribute(element, attributeName) {
+    while (element && element !== document) {
+        if (element.getAttribute && element.getAttribute(attributeName) !== null) {
+            return element;
+        }
 
-// Command: Safely read manga posts from localStorage.
+        element = element.parentNode;
+    }
+
+    return null;
+}
+
+// Command: Make text safe before putting it inside HTML.
+function escapeHTML(value) {
+    value = String(value);
+    value = value.replace(/&/g, '&amp;');
+    value = value.replace(/</g, '&lt;');
+    value = value.replace(/>/g, '&gt;');
+    value = value.replace(/"/g, '&quot;');
+    value = value.replace(/'/g, '&#039;');
+    return value;
+}
+
+// Command: Read saved manga posts from localStorage.
 function getStoredMangaPosts() {
-    const savedPosts = localStorage.getItem(MANGA_STORAGE_KEY);
+    var savedPosts = localStorage.getItem(MANGA_STORAGE_KEY);
 
     if (!savedPosts) {
         return [];
@@ -80,19 +81,18 @@ function getStoredMangaPosts() {
     try {
         return JSON.parse(savedPosts);
     } catch (error) {
-        console.warn('Could not read saved manga posts:', error);
         return [];
     }
 }
 
-// Command: Save manga posts back into localStorage.
+// Command: Save manga posts to localStorage.
 function saveMangaPosts(posts) {
     localStorage.setItem(MANGA_STORAGE_KEY, JSON.stringify(posts));
 }
 
-// Command: Safely read social action data from localStorage.
+// Command: Read likes, comments, shares, and saves from localStorage.
 function getMangaActions() {
-    const savedActions = localStorage.getItem(MANGA_ACTIONS_KEY);
+    var savedActions = localStorage.getItem(MANGA_ACTIONS_KEY);
 
     if (!savedActions) {
         return {};
@@ -101,21 +101,24 @@ function getMangaActions() {
     try {
         return JSON.parse(savedActions);
     } catch (error) {
-        console.warn('Could not read manga action data:', error);
         return {};
     }
 }
 
-// Command: Save social action data back into localStorage.
+// Command: Save likes, comments, shares, and saves to localStorage.
 function saveMangaActions(actions) {
     localStorage.setItem(MANGA_ACTIONS_KEY, JSON.stringify(actions));
 }
 
-// Command: Create default action state for a manga card.
+// Command: Get action data for one manga.
 function getActionState(mangaId) {
-    const actions = getMangaActions();
+    var actions = getMangaActions();
 
-    return actions[mangaId] || {
+    if (actions[mangaId]) {
+        return actions[mangaId];
+    }
+
+    return {
         liked: false,
         saved: false,
         likes: 0,
@@ -124,356 +127,452 @@ function getActionState(mangaId) {
     };
 }
 
-// Command: Update one manga action state and save it.
-function updateActionState(mangaId, updater) {
-    const actions = getMangaActions();
-    const currentState = getActionState(mangaId);
-    actions[mangaId] = updater(currentState);
+// Command: Save action data for one manga.
+function saveActionState(mangaId, state) {
+    var actions = getMangaActions();
+    actions[mangaId] = state;
     saveMangaActions(actions);
-    return actions[mangaId];
 }
 
-// Command: Combine saved posts and demo posts for the homepage feed.
+// Command: Get all manga posts for the feed.
 function getAllMangaPosts() {
-    return [...getStoredMangaPosts(), ...demoMangaPosts];
+    var storedPosts = getStoredMangaPosts();
+    var allPosts = [];
+    var i;
+
+    for (i = 0; i < storedPosts.length; i++) {
+        allPosts.push(storedPosts[i]);
+    }
+
+    for (i = 0; i < demoMangaPosts.length; i++) {
+        allPosts.push(demoMangaPosts[i]);
+    }
+
+    return allPosts;
 }
 
-// Command: Find one manga by id from saved posts or demo posts.
+// Command: Find one manga post by id.
 function getMangaPostById(mangaId) {
-    return getAllMangaPosts().find((item) => item.id === mangaId);
+    var posts = getAllMangaPosts();
+    var i;
+
+    for (i = 0; i < posts.length; i++) {
+        if (posts[i].id === mangaId) {
+            return posts[i];
+        }
+    }
+
+    return null;
 }
 
-// Command: Escape user text before putting it inside HTML.
-function escapeHTML(value) {
-    return String(value)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-}
-
-// Command: Create a simple placeholder cover when a manga has no uploaded image.
-function createPlaceholderCover(mangaName) {
-    return `
-        <div class="manga-cover-placeholder">
-            <span>${escapeHTML(mangaName.slice(0, 2).toUpperCase())}</span>
-        </div>
-    `;
-}
-
-// Command: Support both old panel strings and new panel objects with name/src.
+// Command: Some old posts may have panels as strings, and new posts have panel objects.
 function getPanelSource(panel) {
-    return typeof panel === 'string' ? panel : panel.src;
+    if (typeof panel === 'string') {
+        return panel;
+    }
+
+    return panel.src;
 }
 
-// Command: Use original filename when available, otherwise create a simple fallback name.
+// Command: Get the original image filename if it exists.
 function getPanelName(panel, index) {
-    return typeof panel === 'string' ? `Panel ${index + 1}` : panel.name;
+    if (typeof panel === 'string') {
+        return 'Panel ' + (index + 1);
+    }
+
+    return panel.name;
 }
 
-// Command: Render the action buttons at the bottom of each manga card.
+// Command: Create a placeholder cover if the manga has no image.
+function createPlaceholderCover(mangaName) {
+    var shortName = mangaName.slice(0, 2).toUpperCase();
+
+    return '<div class="manga-cover-placeholder">' +
+        '<span>' + escapeHTML(shortName) + '</span>' +
+        '</div>';
+}
+
+// Command: Create the Like, Comment, Share, and Save buttons.
 function createCardActions(post) {
-    const state = getActionState(post.id);
-    const likedClass = state.liked ? ' is-active' : '';
-    const savedClass = state.saved ? ' is-active' : '';
+    var state = getActionState(post.id);
+    var likedClass = '';
+    var savedClass = '';
+    var saveText = 'Save';
 
-    return `
-        <div class="manga-card-actions" aria-label="${escapeHTML(post.mangaName)} actions">
-            <button class="card-action-button${likedClass}" type="button" data-action="like" data-manga-id="${escapeHTML(post.id)}">Like <span>${state.likes}</span></button>
-            <button class="card-action-button" type="button" data-action="comment" data-manga-id="${escapeHTML(post.id)}">Comment <span>${state.comments.length}</span></button>
-            <button class="card-action-button" type="button" data-action="share" data-manga-id="${escapeHTML(post.id)}">Share <span>${state.shares}</span></button>
-            <button class="card-action-button${savedClass}" type="button" data-action="save" data-manga-id="${escapeHTML(post.id)}">${state.saved ? 'Saved' : 'Save'}</button>
-        </div>
-    `;
+    if (state.liked) {
+        likedClass = ' is-active';
+    }
+
+    if (state.saved) {
+        savedClass = ' is-active';
+        saveText = 'Saved';
+    }
+
+    return '<div class="manga-card-actions" aria-label="' + escapeHTML(post.mangaName) + ' actions">' +
+        '<button class="card-action-button' + likedClass + '" type="button" data-action="like" data-manga-id="' + escapeHTML(post.id) + '">Like <span>' + state.likes + '</span></button>' +
+        '<button class="card-action-button" type="button" data-action="comment" data-manga-id="' + escapeHTML(post.id) + '">Comment <span>' + state.comments.length + '</span></button>' +
+        '<button class="card-action-button" type="button" data-action="share" data-manga-id="' + escapeHTML(post.id) + '">Share <span>' + state.shares + '</span></button>' +
+        '<button class="card-action-button' + savedClass + '" type="button" data-action="save" data-manga-id="' + escapeHTML(post.id) + '">' + saveText + '</button>' +
+        '</div>';
 }
 
-// Command: Render a Facebook-like comment section on the dedicated comments page.
-function createCommentSection(post) {
-    const state = getActionState(post.id);
-    const commentsMarkup = state.comments.length > 0
-        ? state.comments.map((comment) => `
-            <div class="comment-item">
-                <div class="comment-avatar">U</div>
-                <div class="comment-bubble">
-                    <strong>Reader</strong>
-                    <p>${escapeHTML(comment)}</p>
-                </div>
-            </div>
-        `).join('')
-        : '<p class="empty-comments">No comments yet. Be the first one.</p>';
-
-    return `
-        <div class="comment-section comment-section-page" data-comment-section="${escapeHTML(post.id)}">
-            <div class="comment-list">
-                ${commentsMarkup}
-            </div>
-            <form class="comment-form" data-comment-form="${escapeHTML(post.id)}">
-                <input type="text" name="comment" placeholder="Write a comment..." autocomplete="off">
-                <button type="submit">Post</button>
-            </form>
-        </div>
-    `;
-}
-
-// Command: Render one manga card in the homepage feed.
+// Command: Create one manga card for the home feed.
 function createMangaCard(post) {
-    const coverPanel = post.panels?.[0];
-    const coverMarkup = post.panels?.[0]
-        ? `<img class="manga-card-cover" src="${getPanelSource(coverPanel)}" alt="${escapeHTML(post.mangaName)} cover">`
-        : createPlaceholderCover(post.mangaName);
+    var coverHTML;
+    var firstPanel = post.panels[0];
 
-    return `
-        <article class="story-card manga-card" tabindex="0" data-manga-id="${escapeHTML(post.id)}" role="link" aria-label="Open details for ${escapeHTML(post.mangaName)}">
-            ${coverMarkup}
-            <div class="manga-card-body">
-                <p class="manga-card-meta">${escapeHTML(post.genre)} · ${escapeHTML(post.creatorName)}</p>
-                <h2>${escapeHTML(post.mangaName)}</h2>
-                <p>${escapeHTML(post.description)}</p>
-                <span class="read-more-link">View details</span>
-            </div>
-            ${createCardActions(post)}
-        </article>
-    `;
+    if (firstPanel) {
+        coverHTML = '<img class="manga-card-cover" src="' + getPanelSource(firstPanel) + '" alt="' + escapeHTML(post.mangaName) + ' cover">';
+    } else {
+        coverHTML = createPlaceholderCover(post.mangaName);
+    }
+
+    return '<article class="story-card manga-card" tabindex="0" data-manga-id="' + escapeHTML(post.id) + '" role="link" aria-label="Open details for ' + escapeHTML(post.mangaName) + '">' +
+        coverHTML +
+        '<div class="manga-card-body">' +
+        '<p class="manga-card-meta">' + escapeHTML(post.genre) + ' · ' + escapeHTML(post.creatorName) + '</p>' +
+        '<h2>' + escapeHTML(post.mangaName) + '</h2>' +
+        '<p>' + escapeHTML(post.description) + '</p>' +
+        '<span class="read-more-link">View details</span>' +
+        '</div>' +
+        createCardActions(post) +
+        '</article>';
 }
 
-// Command: Go to the details page first instead of opening the reader immediately.
+// Command: Open the details page for one manga.
 function openMangaDetails(mangaId) {
-    window.location.href = `details.html?id=${encodeURIComponent(mangaId)}`;
+    window.location.href = 'details.html?id=' + encodeURIComponent(mangaId);
 }
 
-// Command: Refresh one card's action buttons after like/comment/share/save changes.
+// Command: Refresh one card after Like, Share, or Save changes.
 function refreshCardActions(mangaId) {
-    const post = getMangaPostById(mangaId);
-    const card = Array.from(document.querySelectorAll('.manga-card')).find((item) => item.dataset.mangaId === mangaId);
+    var post = getMangaPostById(mangaId);
+    var cards = document.querySelectorAll('.manga-card');
+    var card = null;
+    var i;
+
+    for (i = 0; i < cards.length; i++) {
+        if (cards[i].dataset.mangaId === mangaId) {
+            card = cards[i];
+        }
+    }
 
     if (!post || !card) {
         return;
     }
 
-    const actions = card.querySelector('.manga-card-actions');
-    actions.outerHTML = createCardActions(post);
-
+    card.querySelector('.manga-card-actions').outerHTML = createCardActions(post);
 }
 
-// Command: Save a comment from the dedicated comments page form.
-function handleCommentSubmit(event) {
-    const form = event.target.closest('.comment-form');
-
-    if (!form) {
-        return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    const mangaId = form.dataset.commentForm;
-    const input = form.querySelector('input[name="comment"]');
-    const comment = input.value.trim();
-
-    if (!comment) {
-        return;
-    }
-
-    updateActionState(mangaId, (state) => ({
-        ...state,
-        comments: [...state.comments, comment]
-    }));
-
-    input.value = '';
-    renderCommentsPage();
-}
-
-// Command: Handle Like, Comment, Share, and Save button clicks.
-async function handleCardAction(event) {
-    const button = event.target.closest('.card-action-button');
+// Command: Handle Like, Comment, Share, and Save.
+function handleCardAction(event) {
+    var button = findParentWithClass(event.target, 'card-action-button');
+    var mangaId;
+    var action;
+    var state;
+    var shareUrl;
 
     if (!button) {
         return;
     }
 
     event.stopPropagation();
-
-    const mangaId = button.dataset.mangaId;
-    const action = button.dataset.action;
-    const post = getMangaPostById(mangaId);
-
-    if (!post) {
-        return;
-    }
+    mangaId = button.dataset.mangaId;
+    action = button.dataset.action;
+    state = getActionState(mangaId);
 
     if (action === 'like') {
-        updateActionState(mangaId, (state) => {
-            const liked = !state.liked;
-            const likes = Math.max(0, state.likes + (liked ? 1 : -1));
-            return { ...state, liked, likes };
-        });
+        state.liked = !state.liked;
+
+        if (state.liked) {
+            state.likes = state.likes + 1;
+        } else {
+            state.likes = Math.max(0, state.likes - 1);
+        }
+
+        saveActionState(mangaId, state);
+        refreshCardActions(mangaId);
     }
 
     if (action === 'save') {
-        updateActionState(mangaId, (state) => ({ ...state, saved: !state.saved }));
+        state.saved = !state.saved;
+        saveActionState(mangaId, state);
+        refreshCardActions(mangaId);
     }
 
     if (action === 'comment') {
-        window.location.href = `comments.html?id=${encodeURIComponent(mangaId)}`;
-        return;
+        window.location.href = 'comments.html?id=' + encodeURIComponent(mangaId);
     }
 
     if (action === 'share') {
-        const shareUrl = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?id=${encodeURIComponent(mangaId)}`;
+        state.shares = state.shares + 1;
+        saveActionState(mangaId, state);
+        refreshCardActions(mangaId);
 
-        updateActionState(mangaId, (state) => ({ ...state, shares: state.shares + 1 }));
+        shareUrl = window.location.origin + window.location.pathname.replace('index.html', '') + 'details.html?id=' + encodeURIComponent(mangaId);
 
         if (navigator.clipboard) {
-            await navigator.clipboard.writeText(shareUrl);
-            button.dataset.notice = 'Copied';
+            navigator.clipboard.writeText(shareUrl);
         } else {
             window.prompt('Copy this manga link:', shareUrl);
         }
     }
-
-    refreshCardActions(mangaId);
 }
 
-// Command: Fill the homepage feed with interactive manga cards.
+// Command: Show manga cards on the home feed.
 function renderMangaFeed() {
-    const feed = document.querySelector('#manga-feed');
+    var feed = document.querySelector('#manga-feed');
+    var posts;
+    var html = '';
+    var cards;
+    var i;
 
     if (!feed) {
         return;
     }
 
-    const posts = getAllMangaPosts();
-    feed.innerHTML = posts.map(createMangaCard).join('');
+    posts = getAllMangaPosts();
 
+    for (i = 0; i < posts.length; i++) {
+        html = html + createMangaCard(posts[i]);
+    }
+
+    feed.innerHTML = html;
     feed.addEventListener('click', handleCardAction);
-    feed.querySelectorAll('.manga-card').forEach((card) => {
-        card.addEventListener('click', (event) => {
-            if (event.target.closest('.card-action-button')) {
+
+    cards = feed.querySelectorAll('.manga-card');
+
+    for (i = 0; i < cards.length; i++) {
+        cards[i].addEventListener('click', function (event) {
+            if (findParentWithClass(event.target, 'card-action-button')) {
                 return;
             }
 
-            openMangaDetails(card.dataset.mangaId);
+            openMangaDetails(this.dataset.mangaId);
         });
 
-        card.addEventListener('keydown', (event) => {
-            if (event.target.closest('.card-action-button')) {
+        cards[i].addEventListener('keydown', function (event) {
+            if (findParentWithClass(event.target, 'card-action-button')) {
                 return;
             }
 
             if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
-                openMangaDetails(card.dataset.mangaId);
+                openMangaDetails(this.dataset.mangaId);
             }
         });
-    });
+    }
 }
 
-// Command: Render the dedicated comments page for one manga.
+// Command: Create the comment list and form.
+function createCommentSection(post) {
+    var state = getActionState(post.id);
+    var html = '<div class="comment-section comment-section-page" data-comment-section="' + escapeHTML(post.id) + '">';
+    var i;
+
+    html = html + '<div class="comment-list">';
+
+    if (state.comments.length === 0) {
+        html = html + '<p class="empty-comments">No comments yet. Be the first one.</p>';
+    }
+
+    for (i = 0; i < state.comments.length; i++) {
+        html = html +
+            '<div class="comment-item">' +
+            '<div class="comment-avatar">U</div>' +
+            '<div class="comment-bubble">' +
+            '<strong>Reader</strong>' +
+            '<p>' + escapeHTML(state.comments[i]) + '</p>' +
+            '</div>' +
+            '</div>';
+    }
+
+    html = html + '</div>';
+    html = html + '<form class="comment-form" data-comment-form="' + escapeHTML(post.id) + '">' +
+        '<input type="text" name="comment" placeholder="Write a comment..." autocomplete="off">' +
+        '<button type="submit">Post</button>' +
+        '</form>';
+    html = html + '</div>';
+
+    return html;
+}
+
+// Command: Save a new comment.
+function handleCommentSubmit(event) {
+    var form = findParentWithClass(event.target, 'comment-form');
+    var mangaId;
+    var input;
+    var comment;
+    var state;
+
+    if (!form) {
+        return;
+    }
+
+    event.preventDefault();
+    mangaId = form.dataset.commentForm;
+    input = form.querySelector('input[name="comment"]');
+    comment = input.value.trim();
+
+    if (comment === '') {
+        return;
+    }
+
+    state = getActionState(mangaId);
+    state.comments.push(comment);
+    saveActionState(mangaId, state);
+    renderCommentsPage();
+}
+
+// Command: Show the comments page.
 function renderCommentsPage() {
-    const commentsShell = document.querySelector('#comments-shell');
+    var commentsShell = document.querySelector('#comments-shell');
+    var params;
+    var mangaId;
+    var post;
+    var form;
+    var input;
 
     if (!commentsShell) {
         return;
     }
 
-    const params = new URLSearchParams(window.location.search);
-    const mangaId = params.get('id');
-    const post = getMangaPostById(mangaId);
+    params = new URLSearchParams(window.location.search);
+    mangaId = params.get('id');
+    post = getMangaPostById(mangaId);
 
     if (!post) {
-        commentsShell.innerHTML = `
-            <p class="page-kicker">Comments</p>
-            <h1 class="page-title">Manga not found</h1>
-            <p class="page-copy">This manga may have been deleted from this browser.</p>
-            <div class="action-row"><a class="primary-action" href="index.html">Back to feed</a></div>
-        `;
+        commentsShell.innerHTML =
+            '<p class="page-kicker">Comments</p>' +
+            '<h1 class="page-title">Manga not found</h1>' +
+            '<p class="page-copy">This manga may have been deleted from this browser.</p>' +
+            '<div class="action-row"><a class="primary-action" href="index.html">Back to feed</a></div>';
         return;
     }
 
-    commentsShell.innerHTML = `
-        <section class="comments-page-card">
-            <p class="page-kicker">${escapeHTML(post.genre)} · ${escapeHTML(post.creatorName)}</p>
-            <h1 class="page-title">${escapeHTML(post.mangaName)}</h1>
-            <p class="page-copy">Read and write comments for this manga.</p>
-            ${createCommentSection(post)}
-            <div class="action-row"><a class="secondary-action" href="details.html?id=${encodeURIComponent(post.id)}">Back to details</a><a class="secondary-action" href="index.html">Back to feed</a></div>
-        </section>
-    `;
+    commentsShell.innerHTML =
+        '<section class="comments-page-card">' +
+        '<p class="page-kicker">' + escapeHTML(post.genre) + ' · ' + escapeHTML(post.creatorName) + '</p>' +
+        '<h1 class="page-title">' + escapeHTML(post.mangaName) + '</h1>' +
+        '<p class="page-copy">Read and write comments for this manga.</p>' +
+        createCommentSection(post) +
+        '<div class="action-row">' +
+        '<a class="secondary-action" href="details.html?id=' + encodeURIComponent(post.id) + '">Back to details</a>' +
+        '<a class="secondary-action" href="index.html">Back to feed</a>' +
+        '</div>' +
+        '</section>';
 
-    const form = commentsShell.querySelector('.comment-form');
-    const input = commentsShell.querySelector('input[name="comment"]');
+    form = commentsShell.querySelector('.comment-form');
+    input = commentsShell.querySelector('input[name="comment"]');
     form.addEventListener('submit', handleCommentSubmit);
     input.focus();
 }
 
-// Command: Convert uploaded image files into data URLs for frontend-only preview/storage.
-function readImageFiles(files) {
-    const imageFiles = Array.from(files).filter((file) => file.type.startsWith('image/'));
+// Command: Read image files selected by the user.
+function readImageFiles(files, finishedCallback) {
+    var imageFiles = [];
+    var panels = [];
+    var loadedCount = 0;
+    var i;
 
-    return Promise.all(imageFiles.map((file) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve({
-                src: reader.result,
-                name: file.name
-            });
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
+    for (i = 0; i < files.length; i++) {
+        if (files[i].type.indexOf('image/') === 0) {
+            imageFiles.push(files[i]);
+        }
+    }
+
+    if (imageFiles.length === 0) {
+        finishedCallback([]);
+        return;
+    }
+
+    for (i = 0; i < imageFiles.length; i++) {
+        readOneImageFile(imageFiles[i], i, panels, function () {
+            loadedCount = loadedCount + 1;
+
+            if (loadedCount === imageFiles.length) {
+                finishedCallback(panels);
+            }
         });
-    }));
+    }
 }
 
-// Command: Move one item inside an array from one position to another position.
+// Command: Read one image file.
+function readOneImageFile(file, index, panels, doneCallback) {
+    var reader = new FileReader();
+
+    reader.onload = function () {
+        panels[index] = {
+            src: reader.result,
+            name: file.name
+        };
+
+        doneCallback();
+    };
+
+    reader.readAsDataURL(file);
+}
+
+// Command: Move a panel inside the selected panel list.
 function moveArrayItem(items, fromIndex, toIndex) {
+    var movedItem;
+
     if (toIndex < 0 || toIndex >= items.length) {
         return items;
     }
 
-    const reorderedItems = [...items];
-    const [movedItem] = reorderedItems.splice(fromIndex, 1);
-    reorderedItems.splice(toIndex, 0, movedItem);
-    return reorderedItems;
+    movedItem = items[fromIndex];
+    items.splice(fromIndex, 1);
+    items.splice(toIndex, 0, movedItem);
+    return items;
 }
 
-// Command: Render panel thumbnails with reorder controls before publishing.
+// Command: Show selected panel previews before publishing.
 function renderPanelPreview(previewGrid) {
-    previewGrid.innerHTML = selectedPublishPanels.map((panel, index) => `
-        <figure class="panel-preview" data-panel-index="${index}" draggable="true">
-            <button class="panel-delete-button" type="button" data-panel-action="delete" data-panel-index="${index}" aria-label="Delete ${escapeHTML(getPanelName(panel, index))}">Delete</button>
-            <img src="${getPanelSource(panel)}" alt="${escapeHTML(getPanelName(panel, index))}" data-panel-action="preview" data-panel-index="${index}">
-            <figcaption>
-                <span>Panel ${index + 1}</span>
-                <strong title="${escapeHTML(getPanelName(panel, index))}">${escapeHTML(getPanelName(panel, index))}</strong>
-                <div class="panel-order-controls" aria-label="Panel ${index + 1} order controls">
-                    <button type="button" data-panel-action="up" data-panel-index="${index}" ${index === 0 ? 'disabled' : ''}>Up</button>
-                    <button type="button" data-panel-action="down" data-panel-index="${index}" ${index === selectedPublishPanels.length - 1 ? 'disabled' : ''}>Down</button>
-                </div>
-            </figcaption>
-        </figure>
-    `).join('');
+    var html = '';
+    var i;
+    var panel;
+
+    for (i = 0; i < selectedPublishPanels.length; i++) {
+        panel = selectedPublishPanels[i];
+        html = html +
+            '<figure class="panel-preview" data-panel-index="' + i + '" draggable="true">' +
+            '<button class="panel-delete-button" type="button" data-panel-action="delete" data-panel-index="' + i + '" aria-label="Delete ' + escapeHTML(getPanelName(panel, i)) + '">Delete</button>' +
+            '<img src="' + getPanelSource(panel) + '" alt="' + escapeHTML(getPanelName(panel, i)) + '" data-panel-action="preview" data-panel-index="' + i + '">' +
+            '<figcaption>' +
+            '<span>Panel ' + (i + 1) + '</span>' +
+            '<strong title="' + escapeHTML(getPanelName(panel, i)) + '">' + escapeHTML(getPanelName(panel, i)) + '</strong>' +
+            '<div class="panel-order-controls" aria-label="Panel ' + (i + 1) + ' order controls">' +
+            '<button type="button" data-panel-action="up" data-panel-index="' + i + '"' + (i === 0 ? ' disabled' : '') + '>Up</button>' +
+            '<button type="button" data-panel-action="down" data-panel-index="' + i + '"' + (i === selectedPublishPanels.length - 1 ? ' disabled' : '') + '>Down</button>' +
+            '</div>' +
+            '</figcaption>' +
+            '</figure>';
+    }
+
+    previewGrid.innerHTML = html;
 }
 
-// Command: Open a larger preview so the creator can confirm which image it is.
+// Command: Open a big preview of one selected panel.
 function openPanelPreview(panel) {
-    const existingModal = document.querySelector('.panel-preview-modal');
+    var existingModal = document.querySelector('.panel-preview-modal');
+    var modal;
 
     if (existingModal) {
         existingModal.remove();
     }
 
-    const modal = document.createElement('div');
+    modal = document.createElement('div');
     modal.className = 'panel-preview-modal';
-    modal.innerHTML = `
-        <div class="panel-preview-dialog" role="dialog" aria-modal="true" aria-label="${escapeHTML(panel.name)} preview">
-            <button class="panel-preview-close" type="button">Close</button>
-            <img src="${panel.src}" alt="${escapeHTML(panel.name)}">
-            <p>${escapeHTML(panel.name)}</p>
-        </div>
-    `;
+    modal.innerHTML =
+        '<div class="panel-preview-dialog" role="dialog" aria-modal="true" aria-label="' + escapeHTML(panel.name) + ' preview">' +
+        '<button class="panel-preview-close" type="button">Close</button>' +
+        '<img src="' + panel.src + '" alt="' + escapeHTML(panel.name) + '">' +
+        '<p>' + escapeHTML(panel.name) + '</p>' +
+        '</div>';
 
-    modal.addEventListener('click', (event) => {
-        if (event.target === modal || event.target.closest('.panel-preview-close')) {
+    modal.addEventListener('click', function (event) {
+        if (event.target === modal || findParentWithClass(event.target, 'panel-preview-close')) {
             modal.remove();
         }
     });
@@ -481,54 +580,47 @@ function openPanelPreview(panel) {
     document.body.appendChild(modal);
 }
 
-// Command: Read selected files, save them in order, and show reorderable previews.
-async function previewSelectedPanels(fileInput, previewGrid) {
-    selectedPublishPanels = await readImageFiles(fileInput.files);
-    renderPanelPreview(previewGrid);
-}
+// Command: Handle clicks inside the panel preview grid.
+function handlePanelPreviewClick(event, previewGrid) {
+    var button = findParentWithAttribute(event.target, 'data-panel-action');
+    var action;
+    var currentIndex;
+    var nextIndex;
 
-// Command: Connect the publish page form to localStorage.
-function setupPublishForm() {
-    const form = document.querySelector('#publish-form');
-    const panelInput = document.querySelector('#manga-panels');
-    const previewGrid = document.querySelector('#panel-preview-grid');
-    const message = document.querySelector('#publish-message');
-
-    if (!form || !panelInput || !previewGrid) {
+    if (!button) {
         return;
     }
 
-    panelInput.addEventListener('change', () => {
-        previewSelectedPanels(panelInput, previewGrid);
-    });
+    action = button.dataset.panelAction;
+    currentIndex = Number(button.dataset.panelIndex);
 
-    previewGrid.addEventListener('click', (event) => {
-        const button = event.target.closest('[data-panel-action]');
+    if (action === 'preview') {
+        openPanelPreview(selectedPublishPanels[currentIndex]);
+        return;
+    }
 
-        if (!button) {
-            return;
-        }
-
-        const currentIndex = Number(button.dataset.panelIndex);
-
-        if (button.dataset.panelAction === 'preview') {
-            openPanelPreview(selectedPublishPanels[currentIndex]);
-            return;
-        }
-
-        if (button.dataset.panelAction === 'delete') {
-            selectedPublishPanels.splice(currentIndex, 1);
-            renderPanelPreview(previewGrid);
-            return;
-        }
-
-        const nextIndex = button.dataset.panelAction === 'up' ? currentIndex - 1 : currentIndex + 1;
-        selectedPublishPanels = moveArrayItem(selectedPublishPanels, currentIndex, nextIndex);
+    if (action === 'delete') {
+        selectedPublishPanels.splice(currentIndex, 1);
         renderPanelPreview(previewGrid);
-    });
+        return;
+    }
 
-    previewGrid.addEventListener('dragstart', (event) => {
-        const preview = event.target.closest('.panel-preview');
+    if (action === 'up') {
+        nextIndex = currentIndex - 1;
+    }
+
+    if (action === 'down') {
+        nextIndex = currentIndex + 1;
+    }
+
+    moveArrayItem(selectedPublishPanels, currentIndex, nextIndex);
+    renderPanelPreview(previewGrid);
+}
+
+// Command: Set up drag and drop ordering for panel previews.
+function setupPanelDragAndDrop(previewGrid) {
+    previewGrid.addEventListener('dragstart', function (event) {
+        var preview = findParentWithClass(event.target, 'panel-preview');
 
         if (!preview) {
             return;
@@ -538,164 +630,244 @@ function setupPublishForm() {
         event.dataTransfer.setData('text/plain', preview.dataset.panelIndex);
     });
 
-    previewGrid.addEventListener('dragend', (event) => {
-        const preview = event.target.closest('.panel-preview');
+    previewGrid.addEventListener('dragend', function (event) {
+        var preview = findParentWithClass(event.target, 'panel-preview');
 
         if (preview) {
             preview.classList.remove('is-dragging');
         }
     });
 
-    previewGrid.addEventListener('dragover', (event) => {
+    previewGrid.addEventListener('dragover', function (event) {
         event.preventDefault();
     });
 
-    previewGrid.addEventListener('drop', (event) => {
-        event.preventDefault();
+    previewGrid.addEventListener('drop', function (event) {
+        var targetPreview;
+        var fromIndex;
+        var toIndex;
 
-        const targetPreview = event.target.closest('.panel-preview');
+        event.preventDefault();
+        targetPreview = findParentWithClass(event.target, 'panel-preview');
 
         if (!targetPreview) {
             return;
         }
 
-        const fromIndex = Number(event.dataTransfer.getData('text/plain'));
-        const toIndex = Number(targetPreview.dataset.panelIndex);
-        selectedPublishPanels = moveArrayItem(selectedPublishPanels, fromIndex, toIndex);
+        fromIndex = Number(event.dataTransfer.getData('text/plain'));
+        toIndex = Number(targetPreview.dataset.panelIndex);
+        moveArrayItem(selectedPublishPanels, fromIndex, toIndex);
         renderPanelPreview(previewGrid);
     });
+}
 
-    form.addEventListener('reset', () => {
+// Command: Set up the publish page form.
+function setupPublishForm() {
+    var form = document.querySelector('#publish-form');
+    var panelInput = document.querySelector('#manga-panels');
+    var previewGrid = document.querySelector('#panel-preview-grid');
+    var message = document.querySelector('#publish-message');
+
+    if (!form || !panelInput || !previewGrid) {
+        return;
+    }
+
+    panelInput.addEventListener('change', function () {
+        readImageFiles(panelInput.files, function (panels) {
+            selectedPublishPanels = panels;
+            renderPanelPreview(previewGrid);
+        });
+    });
+
+    previewGrid.addEventListener('click', function (event) {
+        handlePanelPreviewClick(event, previewGrid);
+    });
+
+    setupPanelDragAndDrop(previewGrid);
+
+    form.addEventListener('reset', function () {
         selectedPublishPanels = [];
         previewGrid.innerHTML = '';
         message.textContent = '';
     });
 
-    form.addEventListener('submit', async (event) => {
+    form.addEventListener('submit', function (event) {
+        var formData;
+        var posts;
+        var newPost;
+
         event.preventDefault();
+        formData = new FormData(form);
 
-        const formData = new FormData(form);
-        const panels = selectedPublishPanels;
-
-        if (panels.length === 0) {
+        if (selectedPublishPanels.length === 0) {
             message.textContent = 'Please add at least one manga panel image.';
             return;
         }
 
-        const newPost = {
-            id: `manga-${Date.now()}`,
+        newPost = {
+            id: 'manga-' + Date.now(),
             mangaName: formData.get('mangaName').trim(),
             creatorName: formData.get('creatorName').trim(),
             genre: formData.get('genre'),
             description: formData.get('description').trim(),
-            panels
+            panels: selectedPublishPanels
         };
 
-        const posts = getStoredMangaPosts();
+        posts = getStoredMangaPosts();
         posts.unshift(newPost);
         saveMangaPosts(posts);
-
         message.textContent = 'Manga published! Returning to the home feed...';
 
-        setTimeout(() => {
+        setTimeout(function () {
             window.location.href = 'index.html';
         }, 600);
     });
 }
 
-// Command: Render the full manga description page with a Read button.
+// Command: Show the manga details page.
 function renderDetailsPage() {
-    const detailsShell = document.querySelector('#details-shell');
+    var detailsShell = document.querySelector('#details-shell');
+    var params;
+    var mangaId;
+    var post;
+    var state;
+    var coverHTML;
 
     if (!detailsShell) {
         return;
     }
 
-    const params = new URLSearchParams(window.location.search);
-    const mangaId = params.get('id');
-    const post = getMangaPostById(mangaId);
-    const state = getActionState(mangaId);
+    params = new URLSearchParams(window.location.search);
+    mangaId = params.get('id');
+    post = getMangaPostById(mangaId);
+    state = getActionState(mangaId);
 
     if (!post) {
-        detailsShell.innerHTML = `
-            <p class="page-kicker">Manga details</p>
-            <h1 class="page-title">Manga not found</h1>
-            <p class="page-copy">This manga may have been deleted from this browser.</p>
-            <div class="action-row"><a class="primary-action" href="index.html">Back to feed</a></div>
-        `;
+        detailsShell.innerHTML =
+            '<p class="page-kicker">Manga details</p>' +
+            '<h1 class="page-title">Manga not found</h1>' +
+            '<p class="page-copy">This manga may have been deleted from this browser.</p>' +
+            '<div class="action-row"><a class="primary-action" href="index.html">Back to feed</a></div>';
         return;
     }
 
-    const coverMarkup = post.panels?.[0]
-        ? `<img class="details-cover" src="${getPanelSource(post.panels[0])}" alt="${escapeHTML(post.mangaName)} cover">`
-        : createPlaceholderCover(post.mangaName);
+    if (post.panels[0]) {
+        coverHTML = '<img class="details-cover" src="' + getPanelSource(post.panels[0]) + '" alt="' + escapeHTML(post.mangaName) + ' cover">';
+    } else {
+        coverHTML = createPlaceholderCover(post.mangaName);
+    }
 
-    detailsShell.innerHTML = `
-        <section class="details-card">
-            ${coverMarkup}
-            <div class="details-body">
-                <p class="page-kicker">${escapeHTML(post.genre)} · ${escapeHTML(post.creatorName)}</p>
-                <h1 class="page-title">${escapeHTML(post.mangaName)}</h1>
-                <p class="page-copy">${escapeHTML(post.description)}</p>
-                <div class="details-stats">
-                    <span>${state.likes} likes</span>
-                    <span>${state.comments.length} comments</span>
-                    <span>${state.shares} shares</span>
-                    <span>${state.saved ? 'Saved' : 'Not saved'}</span>
-                </div>
-                <div class="action-row">
-                    <a class="primary-action" href="reader.html?id=${encodeURIComponent(post.id)}">Read</a>
-                    <a class="secondary-action" href="index.html">Back to feed</a>
-                </div>
-            </div>
-        </section>
-    `;
+    detailsShell.innerHTML =
+        '<section class="details-card">' +
+        coverHTML +
+        '<div class="details-body">' +
+        '<p class="page-kicker">' + escapeHTML(post.genre) + ' · ' + escapeHTML(post.creatorName) + '</p>' +
+        '<h1 class="page-title">' + escapeHTML(post.mangaName) + '</h1>' +
+        '<p class="page-copy">' + escapeHTML(post.description) + '</p>' +
+        '<div class="details-stats">' +
+        '<span>' + state.likes + ' likes</span>' +
+        '<span>' + state.comments.length + ' comments</span>' +
+        '<span>' + state.shares + ' shares</span>' +
+        '<span>' + (state.saved ? 'Saved' : 'Not saved') + '</span>' +
+        '</div>' +
+        '<div class="action-row">' +
+        '<a class="primary-action" href="reader.html?id=' + encodeURIComponent(post.id) + '">Read</a>' +
+        '<a class="secondary-action" href="index.html">Back to feed</a>' +
+        '</div>' +
+        '</div>' +
+        '</section>';
 }
 
-// Command: Render the full page reading mode from the manga id in the URL.
+// Command: Show the reader page.
 function renderReaderPage() {
-    const readerShell = document.querySelector('#reader-shell');
+    var readerShell = document.querySelector('#reader-shell');
+    var params;
+    var mangaId;
+    var post;
+    var panelHTML = '';
+    var i;
+    var panel;
 
     if (!readerShell) {
         return;
     }
 
-    const params = new URLSearchParams(window.location.search);
-    const mangaId = params.get('id');
-    const post = getMangaPostById(mangaId);
+    params = new URLSearchParams(window.location.search);
+    mangaId = params.get('id');
+    post = getMangaPostById(mangaId);
 
     if (!post) {
-        readerShell.innerHTML = `
-            <p class="page-kicker">Reader</p>
-            <h1 class="page-title">Manga not found</h1>
-            <p class="page-copy">This card may have been deleted from this browser.</p>
-            <div class="action-row"><a class="primary-action" href="index.html">Back to feed</a></div>
-        `;
+        readerShell.innerHTML =
+            '<p class="page-kicker">Reader</p>' +
+            '<h1 class="page-title">Manga not found</h1>' +
+            '<p class="page-copy">This card may have been deleted from this browser.</p>' +
+            '<div class="action-row"><a class="primary-action" href="index.html">Back to feed</a></div>';
         return;
     }
 
-    const panelMarkup = post.panels.length > 0
-        ? post.panels.map((panel, index) => `<figure class="reader-panel-frame"><img class="reader-panel" src="${getPanelSource(panel)}" alt="${escapeHTML(getPanelName(panel, index))}"><figcaption>${escapeHTML(getPanelName(panel, index))}</figcaption></figure>`).join('')
-        : `
-            <div class="reader-empty-panel">
-                <p>This demo manga has no uploaded panels yet.</p>
-            </div>
-        `;
+    if (post.panels.length === 0) {
+        panelHTML = '<div class="reader-empty-panel"><p>This demo manga has no uploaded panels yet.</p></div>';
+    } else {
+        for (i = 0; i < post.panels.length; i++) {
+            panel = post.panels[i];
+            panelHTML = panelHTML +
+                '<figure class="reader-panel-frame">' +
+                '<img class="reader-panel" src="' + getPanelSource(panel) + '" alt="' + escapeHTML(getPanelName(panel, i)) + '">' +
+                '<figcaption>' + escapeHTML(getPanelName(panel, i)) + '</figcaption>' +
+                '</figure>';
+        }
+    }
 
-    readerShell.innerHTML = `
-        <div class="reader-header">
-            <p class="page-kicker">${escapeHTML(post.genre)} · ${escapeHTML(post.creatorName)}</p>
-            <h1 class="page-title">${escapeHTML(post.mangaName)}</h1>
-            <p class="page-copy">${escapeHTML(post.description)}</p>
-            <div class="action-row"><a class="secondary-action" href="details.html?id=${encodeURIComponent(post.id)}">Back to details</a><a class="secondary-action" href="index.html">Back to feed</a></div>
-        </div>
-        <div class="reader-panels" aria-label="${escapeHTML(post.mangaName)} manga panels">
-            ${panelMarkup}
-        </div>
-    `;
+    readerShell.innerHTML =
+        '<div class="reader-header">' +
+        '<p class="page-kicker">' + escapeHTML(post.genre) + ' · ' + escapeHTML(post.creatorName) + '</p>' +
+        '<h1 class="page-title">' + escapeHTML(post.mangaName) + '</h1>' +
+        '<p class="page-copy">' + escapeHTML(post.description) + '</p>' +
+        '<div class="action-row">' +
+        '<a class="secondary-action" href="details.html?id=' + encodeURIComponent(post.id) + '">Back to details</a>' +
+        '<a class="secondary-action" href="index.html">Back to feed</a>' +
+        '</div>' +
+        '</div>' +
+        '<div class="reader-panels" aria-label="' + escapeHTML(post.mangaName) + ' manga panels">' +
+        panelHTML +
+        '</div>';
 }
 
-// Command: Start page-specific JavaScript after the document is ready.
+// Command: Hide the header when scrolling down and show it when scrolling up.
+function setupHeaderScroll() {
+    var header = document.querySelector('.header');
+    var root = document.documentElement;
+    var lastScrollY = window.scrollY;
+    var ticking = false;
+
+    if (!header) {
+        return;
+    }
+
+    window.addEventListener('scroll', function () {
+        if (ticking) {
+            return;
+        }
+
+        window.requestAnimationFrame(function () {
+            var currentScrollY = window.scrollY;
+            var scrollingUp = currentScrollY < lastScrollY;
+            var nearTop = currentScrollY <= 10;
+            var shouldHideHeader = !scrollingUp && !nearTop;
+
+            header.classList.toggle('header--hidden', shouldHideHeader);
+            root.classList.toggle('header-is-hidden', shouldHideHeader);
+
+            lastScrollY = Math.max(currentScrollY, 0);
+            ticking = false;
+        });
+
+        ticking = true;
+    }, { passive: true });
+}
+
+// Command: Start the JavaScript for the current page.
+setupHeaderScroll();
 renderMangaFeed();
 setupPublishForm();
 renderDetailsPage();
