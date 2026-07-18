@@ -6,7 +6,7 @@
 }
 
 .main-content{
-    width: min(100%, 760px);
+    width: min(100%, 520px);
     margin: 0 auto;
 }
 
@@ -51,9 +51,9 @@
 .manga-card-cover{
     display: block;
     width: 100%;
-    max-height: clamp(280px, 56vh, 520px);
+    height: auto;
+    max-height: none;
     border-radius: 16px 16px 0 0;
-    object-fit: contain;
     background: transparent;
     border: 0;
 }
@@ -222,7 +222,7 @@
     }
 
     .manga-card-cover{
-        max-height: clamp(240px, 52vh, 420px);
+        height: auto;
     }
 
     .manga-cover-placeholder{
